@@ -258,17 +258,17 @@ for d in range(int((date.today() - lastrun_at).days)):
       for message in messages_by_chat[chat_id]:
         f.write("%s\n" % message.render(chat, fmt))
 
+        if attachments:
+          for attachment in message.attachments:
+            attachment_path = chat_path / attachment.dst_name()
+
+            shutil.copyfile(attachment.src_name(), attachment_path)
+
+            if use_git:
+              git(path, "add", attachment_path.relative_to(path))
+
     if use_git:
       git(path, "add", messages_path.relative_to(path))
-
-    if attachments:
-      for attachment in message.attachments:
-        attachment_path = chat_path / attachment.dst_name()
-
-        shutil.copyfile(attachment.src_name(), attachment_path)
-
-        if use_git:
-          git(path, "add", attachment_path.relative_to(path))
 
   with open(lastrun, mode="w") as f:
     f.write("%s\n" % (day + timedelta(days=1)).isoformat())
