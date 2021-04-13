@@ -167,10 +167,9 @@ class Message:
   def __repr__(self):
     return "Message(timestamp=%r, chat_id=%r, handle_id=%r, caller_id=%r, is_from_me=%r, text=%r, attachments=%r)" % (self.timestamp, self.chat_id, self.handle_id, self.caller_id, self.is_from_me, self.text, self.attachments)
 
-  def render(self, chat, format):
+  def render(self, chat, format, max_sender_length):
     attachments = " ".join(map(str, self.attachments))
-    padding = self._sender_max_length(chat)
-    text = "\n".ljust(padding + 23).join(self.text.splitlines())
+    text = "\n".ljust(max_sender_length + 23).join(self.text.splitlines())
 
     if self.attachments:
       text = text.replace(u"\ufffc", "")
@@ -180,16 +179,13 @@ class Message:
       else:
         text = attachments
 
-    return "%s %s: %s" % (self.timestamp.strftime(format), self.sender().rjust(padding), text)
+    return "%s %s: %s" % (self.timestamp.strftime(format), self.sender().rjust(max_sender_length), text)
 
   def sender(self):
     if self.is_from_me:
       return self.caller_id
     else:
       return self.handle_id
-
-  def _sender_max_length(self, chat):
-    return max(len(s) for s in [self.caller_id] + list(chat.participants.values()))
 
 def fatal(message):
   print(message, file=sys.stderr)
@@ -250,13 +246,16 @@ for d in range(int((date.today() - lastrun_at).days)):
   for chat_id in messages_by_chat:
     chat = chats[chat_id]
     chat_path = path / chats[chat_id].dir_name()
+    messages = messages_by_chat[chat_id]
+    max_sender_length = max(len(m.sender()) for m in messages)
+    messages_path = chat_path  / f"{day_str}.txt"
+
     if not chat_path.exists():
       chat_path.mkdir()
 
-    messages_path = chat_path  / f"{day_str}.txt"
     with open(messages_path, "w") as f:
-      for message in messages_by_chat[chat_id]:
-        f.write("%s\n" % message.render(chat, fmt))
+      for message in messages:
+        f.write("%s\n" % message.render(chat, fmt, max_sender_length))
 
         if attachments:
           for attachment in message.attachments:
