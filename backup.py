@@ -110,7 +110,7 @@ class Message:
                LEFT JOIN handle on handle.ROWID = message.handle_id
                LEFT JOIN message_attachment_join ON message_attachment_join.message_id = message.ROWID
                LEFT JOIN attachment ON attachment.ROWID = message_attachment_join.attachment_id AND attachment.transfer_state = 5 AND attachment.hide_attachment != 1
-               WHERE message.date BETWEEN :start AND :finish
+               WHERE message.date BETWEEN :start AND :finish AND message.text IS NOT NULL
                ORDER BY message.date"""
 
   @classmethod
