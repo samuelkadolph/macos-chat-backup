@@ -167,7 +167,7 @@ class Message:
   def __repr__(self):
     return "Message(timestamp=%r, chat_id=%r, handle_id=%r, caller_id=%r, is_from_me=%r, text=%r, attachments=%r)" % (self.timestamp, self.chat_id, self.handle_id, self.caller_id, self.is_from_me, self.text, self.attachments)
 
-  def render(self, chat, format, max_sender_length):
+  def render(self, format, max_sender_length):
     attachments = " ".join(map(str, self.attachments))
     text = "\n".ljust(max_sender_length + 23).join(self.text.splitlines())
 
@@ -244,7 +244,6 @@ for d in range(int((date.today() - lastrun_at).days)):
     messages_by_chat[message.chat_id].append(message)
 
   for chat_id in messages_by_chat:
-    chat = chats[chat_id]
     chat_path = path / chats[chat_id].dir_name()
     messages = messages_by_chat[chat_id]
     max_sender_length = max(len(m.sender()) for m in messages)
@@ -255,7 +254,7 @@ for d in range(int((date.today() - lastrun_at).days)):
 
     with open(messages_path, "w") as f:
       for message in messages:
-        f.write("%s\n" % message.render(chat, fmt, max_sender_length))
+        f.write("%s\n" % message.render(fmt, max_sender_length))
 
         if attachments:
           for attachment in message.attachments:
